@@ -2,8 +2,9 @@ package com.vinay.bankapi.controllers;
 
 import com.vinay.bankapi.models.Customer;
 import com.vinay.bankapi.repository.DataStore;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +58,11 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        int newId = DataStore.customers.size() + 1;
+        int newId = DataStore.customers.stream()
+                .mapToInt(Customer::getId)
+                .max()
+                .orElse(0) + 1;
+
         Customer newCustomer = new Customer(newId, customer.getName(), customer.getEmail());
         DataStore.customers.add(newCustomer);
         return ResponseEntity.status(201).body(newCustomer);
@@ -77,13 +82,21 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCustomer(@PathVariable int id) {
+        Customer target = null;
+
         for (Customer c : DataStore.customers) {
             if (c.getId() == id) {
-                DataStore.accounts.removeIf(a -> a.getCustomerId() == id);
-                DataStore.customers.remove(c);
-                return ResponseEntity.ok("Customer " + id + " deleted successfully.");
+                target = c;
+                break;
             }
         }
-        return ResponseEntity.notFound().build();
+
+        if (target == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        DataStore.accounts.removeIf(a -> a.getCustomerId() == id);
+        DataStore.customers.remove(target);
+        return ResponseEntity.ok("Customer " + id + " deleted successfully.");
     }
 }

@@ -11,6 +11,13 @@ public class DataStore {
     public static List<Account> accounts = new ArrayList<>();
 
     static {
+        reset();
+    }
+
+    public static void reset() {
+        customers.clear();
+        accounts.clear();
+
         Customer c1 = new Customer(1, "Vinay Halwan", "vinay@email.com");
         Customer c2 = new Customer(2, "John Doe", "john@email.com");
         Customer c3 = new Customer(3, "Jane Smith", "jane@email.com");
