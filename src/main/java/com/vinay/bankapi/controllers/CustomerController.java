@@ -1,102 +1,78 @@
 package com.vinay.bankapi.controllers;
 
 import com.vinay.bankapi.models.Customer;
-import com.vinay.bankapi.repository.DataStore;
+import com.vinay.bankapi.repository.CustomerRepository;
+import com.vinay.bankapi.repository.AccountRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
 
+    private final CustomerRepository customerRepo;
+    private final AccountRepository accountRepo;
+
+    public CustomerController(CustomerRepository customerRepo,
+                              AccountRepository accountRepo) {
+        this.customerRepo = customerRepo;
+        this.accountRepo = accountRepo;
+    }
+
     @GetMapping
     public List<Customer> getAllCustomers() {
-        return DataStore.customers;
+        return customerRepo.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable int id) {
-        for (Customer c : DataStore.customers) {
-            if (c.getId() == id) {
-                return ResponseEntity.ok(c);
-            }
-        }
-        return ResponseEntity.notFound().build();
+        return customerRepo.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Customer>> getCustomerByName(@RequestParam String name) {
-        List<Customer> results = new ArrayList<>();
-        for (Customer c : DataStore.customers) {
-            if (c.getName().toLowerCase().contains(name.toLowerCase())) {
-                results.add(c);
-            }
-        }
-        if (results.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(results);
+    public List<Customer> getCustomerByName(@RequestParam String name) {
+        return customerRepo.findByNameContainingIgnoreCase(name);
     }
 
     @GetMapping("/premium")
     public List<Customer> getPremiumCustomers() {
-        List<Customer> premium = new ArrayList<>();
-        for (Customer c : DataStore.customers) {
-            double total = 0;
-            for (var a : c.getAccounts()) {
-                total += a.getBalance();
-            }
-            if (total > 10000) {
-                premium.add(c);
-            }
-        }
-        return premium;
+        return customerRepo.findAll().stream()
+                .filter(c -> c.getAccounts()
+                        .stream()
+                        .mapToDouble(a -> a.getBalance())
+                        .sum() > 10000)
+                .toList();
     }
 
     @PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        int newId = DataStore.customers.stream()
-                .mapToInt(Customer::getId)
-                .max()
-                .orElse(0) + 1;
-
-        Customer newCustomer = new Customer(newId, customer.getName(), customer.getEmail());
-        DataStore.customers.add(newCustomer);
-        return ResponseEntity.status(201).body(newCustomer);
+    public Customer createCustomer(@RequestBody Customer customer) {
+        return customerRepo.save(customer);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable int id, @RequestBody Customer updated) {
-        for (Customer c : DataStore.customers) {
-            if (c.getId() == id) {
-                c.setName(updated.getName());
-                c.setEmail(updated.getEmail());
-                return ResponseEntity.ok(c);
-            }
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Customer> updateCustomer(@PathVariable int id,
+                                                   @RequestBody Customer updated) {
+        return customerRepo.findById(id)
+                .map(existing -> {
+                    existing.setName(updated.getName());
+                    existing.setEmail(updated.getEmail());
+                    return ResponseEntity.ok(customerRepo.save(existing));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCustomer(@PathVariable int id) {
-        Customer target = null;
-
-        for (Customer c : DataStore.customers) {
-            if (c.getId() == id) {
-                target = c;
-                break;
-            }
-        }
-
-        if (target == null) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable int id) {
+        if (!customerRepo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        DataStore.accounts.removeIf(a -> a.getCustomerId() == id);
-        DataStore.customers.remove(target);
-        return ResponseEntity.ok("Customer " + id + " deleted successfully.");
+        customerRepo.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

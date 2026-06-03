@@ -1,9 +1,11 @@
 package com.vinay.bankapi.models;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
-
+@Document(collection = "customers")
 public class Customer {
+    @Id
     private int id;
     private String name;
     private String email;

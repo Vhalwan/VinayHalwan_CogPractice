@@ -1,6 +1,9 @@
 package com.vinay.bankapi.models;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+@Document(collection = "accounts")
 public class Account {
+    @Id
     private int id;
     private String accountNumber;
     private String accountType;
