@@ -2,5 +2,7 @@
 /Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/controllers/CustomerController.java
 /Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/models/Account.java
 /Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/models/Customer.java
+/Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/repository/AccountRepository.java
+/Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/repository/CustomerRepository.java
 /Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/repository/DataStore.java
 /Users/vinayhalwan/Downloads/code/bankapi/src/main/java/com/vinay/bankapi/service/CustomerService.java
