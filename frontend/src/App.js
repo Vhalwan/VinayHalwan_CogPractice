@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const apiBase = "http://localhost:8080/api/customers";
+const apiBase = "https://vinayhalwan-cogpractice.onrender.com/api/customers";
 
 const emptyCustomer = {
   id: "",
